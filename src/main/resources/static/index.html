@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Movie Search</title>
+    <style>
+        :root {
+            --bg: #07151b;
+            --panel: rgba(10, 25, 34, 0.75);
+            --panel-2: rgba(10, 25, 34, 0.55);
+            --text: #e8f1f6;
+            --muted: #b9c7d1;
+            --accent: #3fd0ff;
+            --shadow: 0 20px 60px rgba(0,0,0,.45);
+            --radius: 18px;
+            --max: 1100px;
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        /* Hero background like your screenshot */
+        .hero {
+            min-height: 100vh;
+            background:
+                    radial-gradient(1200px 600px at 20% 30%, rgba(63,208,255,0.12), transparent 60%),
+                    radial-gradient(900px 500px at 80% 50%, rgba(0,0,0,0.45), transparent 55%),
+                    linear-gradient(180deg, rgba(0,0,0,.55), rgba(0,0,0,.75)),
+                    url("https://images.unsplash.com/photo-1524985069026-dd778a71c7b4?auto=format&fit=crop&w=2000&q=60");
+            background-size: cover;
+            background-position: center;
+            padding: 28px 18px 60px;
+        }
+
+        .topbar {
+            max-width: var(--max);
+            margin: 0 auto 22px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .brand {
+            font-weight: 700;
+            letter-spacing: .4px;
+            opacity: .95;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .dot {
+            width: 10px; height: 10px;
+            background: var(--accent);
+            border-radius: 999px;
+            box-shadow: 0 0 18px rgba(63,208,255,.6);
+        }
+
+        .search {
+            flex: 1;
+            max-width: 560px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            background: var(--panel);
+            border: 1px solid rgba(255,255,255,.12);
+            border-radius: 999px;
+            padding: 10px 12px 10px 14px;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(8px);
+        }
+        .search input {
+            flex: 1;
+            border: 0;
+            outline: none;
+            background: transparent;
+            color: var(--text);
+            font-size: 15px;
+        }
+        .search input::placeholder { color: rgba(232,241,246,.6); }
+        .search button {
+            border: 0;
+            cursor: pointer;
+            color: #001018;
+            background: var(--accent);
+            padding: 10px 14px;
+            border-radius: 999px;
+            font-weight: 700;
+        }
+
+        .container {
+            max-width: var(--max);
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 26px;
+            align-items: start;
+        }
+
+        .posterCard {
+            background: var(--panel-2);
+            border: 1px solid rgba(255,255,255,.10);
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(8px);
+        }
+        .posterCard img {
+            width: 100%;
+            display: block;
+            aspect-ratio: 2/3;
+            object-fit: cover;
+            background: rgba(0,0,0,.2);
+        }
+        .posterCard .footer {
+            padding: 14px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            justify-content: space-between;
+            border-top: 1px solid rgba(255,255,255,.08);
+        }
+        .badge {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .details {
+            padding-top: 8px;
+        }
+        .titleRow {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: baseline;
+            margin-bottom: 10px;
+        }
+        .titleRow h1 {
+            margin: 0;
+            font-size: 44px;
+            letter-spacing: -0.5px;
+        }
+        .year {
+            color: rgba(232,241,246,.75);
+            font-size: 28px;
+        }
+        .meta {
+            color: var(--muted);
+            margin: 10px 0 18px;
+            max-width: 760px;
+            line-height: 1.5;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin: 12px 0 22px;
+        }
+        .pill {
+            background: rgba(255,255,255,.10);
+            border: 1px solid rgba(255,255,255,.12);
+            color: var(--text);
+            border-radius: 999px;
+            padding: 10px 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .results {
+            margin-top: 26px;
+            background: var(--panel-2);
+            border: 1px solid rgba(255,255,255,.10);
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(8px);
+        }
+        .resultsHeader {
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(255,255,255,.08);
+            color: var(--muted);
+            font-size: 13px;
+        }
+        .resultItem {
+            display: grid;
+            grid-template-columns: 54px 1fr;
+            gap: 12px;
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(255,255,255,.06);
+            cursor: pointer;
+        }
+        .resultItem:last-child { border-bottom: 0; }
+        .thumb {
+            width: 54px;
+            height: 81px;
+            border-radius: 10px;
+            object-fit: cover;
+            background: rgba(0,0,0,.25);
+        }
+        .resultItem .name {
+            font-weight: 700;
+            margin: 0 0 4px;
+        }
+        .resultItem .sub {
+            margin: 0;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.35;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .status {
+            max-width: var(--max);
+            margin: 14px auto 0;
+            color: rgba(232,241,246,.75);
+            font-size: 13px;
+        }
+
+        @media (max-width: 920px) {
+            .container { grid-template-columns: 1fr; }
+            .titleRow h1 { font-size: 36px; }
+            .year { font-size: 22px; }
+            .posterCard { max-width: 360px; }
+            .topbar { flex-direction: column; align-items: stretch; }
+            .search { max-width: none; }
+        }
+    </style>
+</head>
+<body>
+<div class="hero" id="hero">
+    <div class="topbar">
+        <div class="brand"><span class="dot"></span>DEPT Movie Database</div>
+
+        <form class="search" id="searchForm">
+            <input id="q" type="text" placeholder="Search movies (e.g., Star Wars)" autocomplete="off" />
+            <button type="submit">Search</button>
+        </form>
+    </div>
+
+    <div class="container">
+        <div class="posterCard">
+            <img id="poster" alt="Poster" />
+            <div class="footer">
+                <div class="badge" id="posterBadge">No movie selected</div>
+                <div class="badge" id="countBadge"></div>
+            </div>
+        </div>
+
+        <div class="details">
+            <div class="titleRow">
+                <h1 id="title">Search for a movie</h1>
+                <div class="year" id="year"></div>
+            </div>
+
+            <div class="actions">
+                <button class="pill" type="button" id="openTmdb" disabled>Open on TMDB</button>
+            </div>
+
+            <p class="meta" id="overview">
+                Use the search bar above. Results will appear below; click one to load it into the hero.
+            </p>
+
+            <div class="results" id="resultsBox" style="display:none;">
+                <div class="resultsHeader" id="resultsHeader">Results</div>
+                <div id="results"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="status" id="status"></div>
+</div>
+
+<script>
+    const API = "/api/movies/search"; // backend endpoint
+    const posterEl = document.getElementById("poster");
+    const titleEl = document.getElementById("title");
+    const yearEl = document.getElementById("year");
+    const overviewEl = document.getElementById("overview");
+    const statusEl = document.getElementById("status");
+    const resultsBox = document.getElementById("resultsBox");
+    const resultsEl = document.getElementById("results");
+    const resultsHeaderEl = document.getElementById("resultsHeader");
+    const posterBadgeEl = document.getElementById("posterBadge");
+    const countBadgeEl = document.getElementById("countBadge");
+    const openTmdbBtn = document.getElementById("openTmdb");
+
+    let currentTmdbId = null;
+
+    function yearFromDate(dateStr) {
+        if (!dateStr) return "";
+        const m = String(dateStr).match(/^(\d{4})/);
+        return m ? m[1] : "";
+    }
+
+    function setSelected(movie, totalResults) {
+        currentTmdbId = movie?.id ?? null;
+
+        titleEl.textContent = movie?.title ?? "No results";
+        yearEl.textContent = movie?.releaseDate ? `(${yearFromDate(movie.releaseDate)})` : "";
+        overviewEl.textContent = movie?.overview || "No overview available.";
+
+        posterEl.src = movie?.posterUrl || "";
+        posterEl.style.opacity = movie?.posterUrl ? "1" : "0";
+
+        posterBadgeEl.textContent = movie ? "Selected" : "No movie selected";
+        countBadgeEl.textContent = totalResults != null ? `${totalResults} results` : "";
+
+        openTmdbBtn.disabled = !currentTmdbId;
+    }
+
+    function renderResults(list, totalResults) {
+        resultsEl.innerHTML = "";
+        resultsHeaderEl.textContent = `Results (${totalResults})`;
+        resultsBox.style.display = "block";
+
+        list.forEach((m) => {
+            const item = document.createElement("div");
+            item.className = "resultItem";
+            item.innerHTML = `
+          <img class="thumb" src="${m.posterUrl || ""}" alt="">
+          <div>
+            <p class="name">${escapeHtml(m.title)} ${m.releaseDate ? `<span style="opacity:.7">(${yearFromDate(m.releaseDate)})</span>` : ""}</p>
+            <p class="sub">${escapeHtml(m.overview || "")}</p>
+          </div>
+        `;
+            item.addEventListener("click", () => setSelected(m, totalResults));
+            resultsEl.appendChild(item);
+        });
+    }
+
+    function escapeHtml(s) {
+        return String(s || "")
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
+    }
+
+    document.getElementById("searchForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const q = document.getElementById("q").value.trim();
+        if (!q) return;
+
+        statusEl.textContent = "Searching…";
+        resultsBox.style.display = "none";
+        currentTmdbId = null;
+        openTmdbBtn.disabled = true;
+
+        try {
+            const res = await fetch(`${API}?q=${encodeURIComponent(q)}&sort=release_date_desc`);
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(`Backend error: ${res.status} ${text}`);
+            }
+
+            const data = await res.json();
+            const movies = data.results || [];
+            statusEl.textContent = movies.length ? "" : "No results found.";
+
+            if (movies.length) {
+                setSelected(movies[0], data.totalResults ?? movies.length);
+                renderResults(movies.slice(0, 10), data.totalResults ?? movies.length);
+            } else {
+                setSelected(null, 0);
+            }
+        } catch (err) {
+            statusEl.textContent = err.message || "Request failed";
+        }
+    });
+
+    openTmdbBtn.addEventListener("click", () => {
+        if (!currentTmdbId) return;
+        window.open(`https://www.themoviedb.org/movie/${currentTmdbId}`, "_blank");
+    });
+
+    // Initial state
+    posterEl.style.opacity = "0";
+</script>
+</body>
+</html>

@@ -1,0 +1,30 @@
+package com.dept.moviedatabase.config;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpHeaders;
+import org.springframework.web.client.RestClient;
+
+import java.util.concurrent.TimeUnit;
+
+@Configuration
+public class TmdbConfig {
+
+    @Bean
+    public RestClient tmdbRestClient(
+            @Value("${tmdb.base-url}") String baseUrl,
+            @Value("${tmdb.bearer-token}") String bearerToken
+    ) {
+        if (bearerToken == null || bearerToken.isBlank()) {
+            throw new IllegalStateException(
+                    "TMDB_BEARER_TOKEN is not set. Add it as an environment variable."
+            );
+        }
+
+        return RestClient.builder()
+                .baseUrl(baseUrl)
+                .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + bearerToken)
+                .build();
+    }
+}
