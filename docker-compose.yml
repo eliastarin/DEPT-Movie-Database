@@ -1,0 +1,11 @@
+services:
+  moviedatabase:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: moviedatabase
+    ports:
+      - "8080:8080"
+    environment:
+      TMDB_BEARER_TOKEN: "${TMDB_BEARER_TOKEN}"
+    restart: unless-stopped

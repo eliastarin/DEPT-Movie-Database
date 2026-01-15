@@ -11,7 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-@Tag(name = "Movies", description = "Movie search endpoints from TMDB.org")
+@Tag(name = "Movies", description = "Movie search endpoints from TMDB.org") // Swagger Doc
 @Validated
 @RestController
 @RequestMapping("/api/movies")
@@ -23,8 +23,8 @@ public class MovieController {
         this.movieService = movieService;
     }
     @Operation(
-            summary = "Search movies by title",
-            description = "Searches TMDB for matching movies and returns a paginated result set."
+            summary = "Search movies by title", // Swagger Doc
+            description = "Searches TMDB for matching movies."
     )
     @GetMapping("/search")
     public ResponseEntity<MovieSearchResponse> search(

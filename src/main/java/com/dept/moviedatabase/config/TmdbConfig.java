@@ -6,8 +6,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.client.RestClient;
 
-import java.util.concurrent.TimeUnit;
-
 @Configuration
 public class TmdbConfig {
 

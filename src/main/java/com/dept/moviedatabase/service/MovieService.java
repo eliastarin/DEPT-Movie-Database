@@ -6,7 +6,6 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
-
 import java.util.Comparator;
 import java.util.List;
 
@@ -20,25 +19,28 @@ public class MovieService {
         this.tmdbRestClient = tmdbRestClient;
     }
 
-    // Keep your existing method so current controller code still works
-    public MovieSearchResponse search(String query, int page) {
-        return search(query, page, "relevance");
-    }
-
-    // New method: supports sorting
+    // Main searching functionality
     @Cacheable(
             value = "movieSearch",
             key = "#query + ':' + #page"
     )
     public MovieSearchResponse search(String query, int page, String sort) {
+
+        // Validate user input to avoid unnecessary TMDB calls
         if (query == null || query.trim().isEmpty()) {
             throw new IllegalArgumentException("Query parameter 'q' must not be blank.");
         }
 
+        // Page number always starts at 1
         int safePage = Math.max(1, page);
-        String safeSort = (sort == null || sort.isBlank()) ? "relevance" : sort.trim().toLowerCase();
+
+        // Normalize sorting input and apply a default when missing
+        String safeSort = (sort == null || sort.isBlank())
+                ? "relevance"
+                : sort.trim().toLowerCase();
 
         try {
+            // Call the TMDB /search/movie endpoint using the RestClient
             TmdbSearchMovieResponse tmdb = tmdbRestClient.get()
                     .uri(uriBuilder -> uriBuilder
                             .path("/search/movie")
@@ -48,37 +50,41 @@ public class MovieService {
                     .retrieve()
                     .body(TmdbSearchMovieResponse.class);
 
+            // If TMDB returns a NULL response body
             if (tmdb == null) {
                 return new MovieSearchResponse(1, 0, 0, List.of());
             }
 
+            // Map the TMDB movie results to the internal MovieDTO objects
             List<MovieDTO> mapped = tmdb.results().stream()
                     .map(r -> new MovieDTO(
                             r.id(),
                             r.title(),
                             r.release_date(),
                             r.overview(),
-                            r.poster_path() == null ? null : IMAGE_BASE + r.poster_path()
+                            r.poster_path() == null
+                                    ? null
+                                    : IMAGE_BASE + r.poster_path()
                     ))
                     .toList();
 
-            // Sorting logic
+            // Apply an optional sorting logic based on the release date of the movie
             if (safeSort.startsWith("release_date")) {
+                // Default: oldest movies first, null release dates last
                 Comparator<MovieDTO> comparator = Comparator.comparing(
                         MovieDTO::releaseDate,
                         Comparator.nullsLast(String::compareTo)
                 );
-
-                // release_date_desc = newest first
+                // If requested, reverse order to show newest movies first
                 if (safeSort.endsWith("_desc")) {
                     comparator = comparator.reversed();
                 }
-
                 mapped = mapped.stream()
                         .sorted(comparator)
                         .toList();
             }
 
+            // Build and return the final API response
             return new MovieSearchResponse(
                     tmdb.page(),
                     tmdb.total_pages(),
@@ -87,12 +93,15 @@ public class MovieService {
             );
 
         } catch (RestClientResponseException ex) {
-            throw new RuntimeException("TMDB request failed: " + ex.getStatusCode().value(), ex);
+            // Convert TMDB HTTP errors
+            throw new RuntimeException(
+                    "TMDB request failed: " + ex.getStatusCode().value(),
+                    ex
+            );
         }
     }
 
-    // --- Internal DTOs to match TMDB JSON (only fields we need) ---
-
+    // Internal DTOs to match to the TMDB JSON types
     record TmdbSearchMovieResponse(
             int page,
             int total_pages,

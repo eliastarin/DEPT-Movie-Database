@@ -14,7 +14,7 @@ public class CacheConfig {
     public CacheManager cacheManager() {
         CaffeineCacheManager caffeineCacheManagermanager = new CaffeineCacheManager("movieSearch");
         caffeineCacheManagermanager.setCaffeine(Caffeine.newBuilder()
-                .expireAfterWrite(15, TimeUnit.MINUTES)
+                .expireAfterWrite(10, TimeUnit.MINUTES)
                 .maximumSize(100) // Keep maximum 100 searches
         );
         return caffeineCacheManagermanager;
